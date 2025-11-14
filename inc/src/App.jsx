@@ -8,7 +8,7 @@ import Dashboard from "./pages/Dashboard";
 
 // 🏠 Landing Page Components
 import HeroWithNavbar from "./Components/Hero.jsx";
-import AboutCard from "./Components/About.jsx";
+import AboutCard from "./Components/about.jsx";
 import Highlight from "./Components/highlights.jsx";
 import Showcase from "./Components/showcase.jsx";
 import Services from "./Components/services.jsx";
