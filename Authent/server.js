@@ -14,21 +14,25 @@ app.use(express.json());
 
 // CORS: allow only the frontend origin (set via env)
 // while debugging you can set CORS_ORIGIN="*" but DON'T do that in production
-const allowedOrigins = [process.env.CORS_ORIGIN]; // your Vercel URL
+import cors from "cors";
+
+// Support multiple origins (comma-separated in .env)
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map(o => o.trim())
+  : ["*"];
 
 app.use(cors({
   origin: (origin, callback) => {
-    // allow requests with no origin (like mobile apps or curl)
+    // allow requests with no origin (Postman, mobile apps, curl)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
+    if (allowedOrigins.includes(origin)) return callback(null, true);
     callback(new Error("Not allowed by CORS"));
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true, // if you are using cookies
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization"],
+  credentials: true,
 }));
+
 
 // Environment / defaults
 const PORT = process.env.PORT || 5000;
