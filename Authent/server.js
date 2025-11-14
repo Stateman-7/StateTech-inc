@@ -14,8 +14,27 @@ app.use(express.json());
 
 // CORS: allow only the frontend origin (set via env)
 // while debugging you can set CORS_ORIGIN="*" but DON'T do that in production
-const corsOrigin = process.env.CORS_ORIGIN || "*";
-app.use(cors({ origin: corsOrigin }));
+const allowedOrigins = [process.env.CORS_ORIGIN]; // your Vercel URL
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error("Not allowed by CORS"));
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true, // if you are using cookies
+}));
+
+// Handle OPTIONS preflight for all routes
+app.options("*", cors({
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true
+}));
 
 // Environment / defaults
 const PORT = process.env.PORT || 5000;
