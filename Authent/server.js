@@ -14,7 +14,6 @@ app.use(express.json());
 
 // CORS: allow only the frontend origin (set via env)
 // while debugging you can set CORS_ORIGIN="*" but DON'T do that in production
-import cors from "cors";
 
 // Support multiple origins (comma-separated in .env)
 const allowedOrigins = process.env.CORS_ORIGIN
