@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
-import User from "./models/usermodel.js";
+import User from "./models/userModel.js";
 
 dotenv.config();
 
