@@ -80,7 +80,7 @@ function authenticateToken(req, res, next) {
 }
 
 // Routes
-app.post("/register", async (req, res) => {
+app.post("*/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
     if (!email || !password) return res.status(400).json({ message: "Email and password are required" });
@@ -99,7 +99,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.post("/login", async (req, res) => {
+app.post("*/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ message: "Email and password are required" });
@@ -124,7 +124,7 @@ app.post("/login", async (req, res) => {
 });
 
 // Protected route
-app.get("/profile", authenticateToken, async (req, res) => {
+app.get("*/profile", authenticateToken, async (req, res) => {
   try {
     // req.user contains payload from jwt (id, email)
     const user = await User.findById(req.user.id).select("-password");
@@ -137,7 +137,7 @@ app.get("/profile", authenticateToken, async (req, res) => {
 });
 
 // Health check
-app.get("/", (req, res) => res.json({ status: "ok" }));
+app.get("*/", (req, res) => res.json({ status: "ok" }));
 
 // Start app after DB connected
 start();
