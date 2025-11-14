@@ -52,47 +52,61 @@ StateTech Inc. is a modern web application providing a secure, user-friendly das
 
 ## Image Credits
 - Logo and background tiles: Created internally.  
-- Any placeholder images: Public domain or free stock resources (if used).
+- Any placeholder images: Public domain and free stock resources (unsplash,pexels).
 
 ---
 
 ## Installation & Setup
 
-1. Clone the repository:
-```bash
+1. Clone the repository
+```bash  
 git clone https://github.com/Stateman-7/StateTech-inc
+```
+2. install dependancies
+```  
+npm install
+```
+3. Create a .env file with the following:
+```
+PORT=5000
+MONGO_URI=[your MongoDB URI]
+SECRET_KEY=[your JWT secret]
+CORS_ORIGIN=https://state-tech-inc.vercel.app
+```
+4.Start both backend and frontend servers
+```
+npm run start
+npm run dev
+```
 ---
-##Technologies Used
+## Design Decisions
 
-React 18+ – Frontend UI library
+- React 18+ – Frontend UI library
+- Tailwind CSS 3+ – Utility-first styling
+- Express.js – Backend API server
+- MongoDB with Mongoose – Database and ORM
+- JWT – Authentication
+- Bcrypt – Password hashing
 
-Tailwind CSS 3+ – Utility-first styling
-
-Express.js – Backend API server
-
-MongoDB with Mongoose – Database and ORM
-
-JWT – Authentication
-
-Bcrypt – Password hashing
 ---
+
 ## Challenges & Solutions
----
-CORS issues on deployment – Resolved by whitelisting frontend URL and handling preflight requests correctly.
 
-Responsive background animation – Implemented floating tile animation using percentage-based positions to adapt across screens.
+ - CORS issues on deployment – Resolved by whitelisting frontend URL and handling preflight requests correctly.
+ - Responsive background animation – Implemented floating tile animation using percentage-based positions to adapt across screens.
+ - Secure authentication – Implemented bcrypt password hashing and JWT-based token authentication.
 
-Secure authentication – Implemented bcrypt password hashing and JWT-based token authentication.
 ---
 ##Future Improvements
----
-Add user roles and permissions to enhance dashboard functionality.
 
-Implement real-time analytics with WebSockets.
+  - Add user roles and permissions to enhance dashboard functionality.
+  - Implement real-time analytics with WebSockets.
+  - Optimize offline access with service workers and caching.
+  - Include more interactive dashboard widgets and charts.
+  - Add multi-language support for broader accessibility.
 
-Optimize offline access with service workers and caching.
+  
+  
+  
+  
 
-Include more interactive dashboard widgets and charts.
-
-Add multi-language support for broader accessibility.
----
