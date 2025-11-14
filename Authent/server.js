@@ -12,33 +12,32 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// CORS: allow only the frontend origin (set via env)
-// while debugging you can set CORS_ORIGIN="*" but DON'T do that in production
-
-// Support multiple origins (comma-separated in .env)
+// ----- CORS Setup -----
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",").map(o => o.trim())
   : ["*"];
 
+// handle normal requests
 app.use(cors({
-  origin: (origin, callback) => {
-    // allow requests with no origin (Postman, mobile apps, curl)
-    if (!origin) return callback(null, true);
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true); // allow non-browser requests
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    callback(new Error("Not allowed by CORS"));
+    return callback(new Error("Not allowed by CORS"));
   },
   methods: ["GET","POST","PUT","DELETE","OPTIONS"],
   allowedHeaders: ["Content-Type","Authorization"],
   credentials: true,
 }));
 
+// handle preflight requests globally
+app.options("*", cors());
 
-// Environment / defaults
+// ----- Environment -----
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 const SECRET_KEY = process.env.SECRET_KEY || "dev_secret_key";
 
-// Helper: start server after DB connection
+// ----- Start server after DB connected -----
 async function start() {
   if (!MONGO_URI) {
     console.error("MONGO_URI is not set. Exiting.");
@@ -46,7 +45,6 @@ async function start() {
   }
 
   try {
-    // ✅ Mongoose connect without deprecated options
     await mongoose.connect(MONGO_URI);
     console.log("Connected to MongoDB");
   } catch (err) {
@@ -54,12 +52,10 @@ async function start() {
     process.exit(1);
   }
 
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
 
-// JWT middleware
+// ----- JWT Middleware -----
 function authenticateToken(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ message: "Missing Authorization header" });
@@ -74,22 +70,22 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// Routes
+// ----- Routes -----
 app.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ message: "Email and password are required" });
+    if (!email || !password) return res.status(400).json({ message: "Email and password required" });
 
     const exists = await User.findOne({ email });
     if (exists) return res.status(409).json({ message: "User already exists" });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ name, email, password: hashedPassword });
+    const hashed = await bcrypt.hash(password, 10);
+    const newUser = new User({ name, email, password: hashed });
     await newUser.save();
 
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
-    console.error("Register error:", err);
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -97,7 +93,7 @@ app.post("/register", async (req, res) => {
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ message: "Email and password are required" });
+    if (!email || !password) return res.status(400).json({ message: "Email and password required" });
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -105,37 +101,25 @@ app.post("/login", async (req, res) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      SECRET_KEY,
-      { expiresIn: "1h" }
-    );
-
+    const token = jwt.sign({ id: user._id, email: user.email }, SECRET_KEY, { expiresIn: "1h" });
     res.json({ token });
   } catch (err) {
-    console.error("Login error:", err);
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// Protected route
 app.get("/profile", authenticateToken, async (req, res) => {
   try {
-    // req.user contains payload from jwt (id, email)
     const user = await User.findById(req.user.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json({ user });
   } catch (err) {
-    console.error("Profile error:", err);
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// Health check
 app.get("/", (req, res) => res.json({ status: "ok" }));
 
-// Start app after DB connected
 start();
-
-// export for testing (optional)
-export default app;

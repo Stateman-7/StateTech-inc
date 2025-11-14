@@ -8,38 +8,25 @@ export default function Dashboard() {
   const API = import.meta.env.VITE_API_URL;
 
   const loadProfile = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
+  const token = localStorage.getItem("token");
+  if (!token) return navigate("/login");
+
+  const res = await fetch(`${API}/profile`, {
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
     }
+  });
 
-    try {
-      const res = await fetch(`${API}/profile`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.user) {
-        setUser(data.user);
-      } else {
-        alert(data.message || "Session expired. Please login again.");
-        localStorage.removeItem("token");
-        navigate("/login");
-      }
-    } catch (err) {
-      console.error("Error fetching profile:", err);
-      alert("Unable to load profile. Check your connection or try again later.");
-      localStorage.removeItem("token");
-      navigate("/login");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const data = await res.json();
+  if (res.ok) {
+    setUser(data.user);
+  } else {
+    alert(data.message || "Session expired");
+    localStorage.removeItem("token");
+    navigate("/login");
+  }
+};
 
   useEffect(() => {
     loadProfile();
