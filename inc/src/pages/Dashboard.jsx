@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
   const API = import.meta.env.VITE_API_URL;
+
   const loadProfile = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -13,18 +14,30 @@ export default function Dashboard() {
       return;
     }
 
-    const res = await fetch(`${API}/profile`, {
-      headers: { "Content-Type": "application/json",
-                Authorization: `Bearer ${token}` },
-    });
+    try {
+      const res = await fetch(`${API}/profile`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    const data = await res.json();
-    if (res.ok) {
-      setUser(data.user);
-    } else {
-      alert(data.message || "Session expired");
+      const data = await res.json();
+
+      if (res.ok && data.user) {
+        setUser(data.user);
+      } else {
+        alert(data.message || "Session expired. Please login again.");
+        localStorage.removeItem("token");
+        navigate("/login");
+      }
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+      alert("Unable to load profile. Check your connection or try again later.");
       localStorage.removeItem("token");
       navigate("/login");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,9 +63,15 @@ export default function Dashboard() {
       </nav>
 
       <main className="flex-1 flex flex-col items-center justify-center text-center">
-        <h2 className="text-4xl font-extrabold mb-6 text-white">
-          {user ? `Welcome, ${user.email}` : "Loading your profile..."}
-        </h2>
+        {loading ? (
+          <h2 className="text-4xl font-extrabold mb-6 text-white">
+            Loading your profile...
+          </h2>
+        ) : (
+          <h2 className="text-4xl font-extrabold mb-6 text-white">
+            {user ? `Welcome, ${user.email}` : "User not found"}
+          </h2>
+        )}
         <p className="text-gray-300 text-lg">
           Your secure dashboard for managing company systems and analytics.
         </p>

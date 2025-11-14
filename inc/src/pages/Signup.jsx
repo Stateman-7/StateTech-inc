@@ -9,6 +9,8 @@ export default function Signup() {
   const [tiles, setTiles] = useState([]);
   const navigate = useNavigate();
 
+  const API = import.meta.env.VITE_API_URL; // Ensure this exists in .env
+
   // Generate number of tiles based on screen size with random positions and speeds
   useEffect(() => {
     const updateTiles = () => {
@@ -48,27 +50,41 @@ export default function Signup() {
     animate();
   }, []);
 
-  const API = import.meta.env.VITE_API_URL;
+  // Signup handler
   const handleSignup = async (e) => {
     e.preventDefault();
+
+    if (!name || !email || !password) {
+      alert("Please fill all fields");
+      return;
+    }
+
     try {
+      console.log("Sending signup request to:", `${API}/register`);
+      console.log({ name, email, password });
+
       const res = await fetch(`${API}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
+
       const data = await res.json();
-      alert(data.message);
-      if (res.ok) navigate("/login");
+
+      if (res.ok) {
+        alert(data.message || "Signup successful!");
+        navigate("/login");
+      } else {
+        alert(data.message || "Signup failed.");
+      }
     } catch (err) {
-      console.error(err);
-      alert("Error signing up.");
+      console.error("Signup fetch error:", err);
+      alert("Error connecting to server.");
     }
   };
 
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-sky-950 text-white overflow-hidden">
-      
       {/* Floating Watermark Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         {tiles.map((tile, i) => (
@@ -78,7 +94,12 @@ export default function Signup() {
             alt="Logo"
             className="opacity-10 absolute"
             style={{
-              width: window.innerWidth < 640 ? "80px" : window.innerWidth < 1024 ? "120px" : "150px",
+              width:
+                window.innerWidth < 640
+                  ? "80px"
+                  : window.innerWidth < 1024
+                  ? "120px"
+                  : "150px",
               height: "auto",
               top: `${tile.y}%`,
               left: `${tile.x}%`,
@@ -141,3 +162,4 @@ export default function Signup() {
     </div>
   );
 }
+

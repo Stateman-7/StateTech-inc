@@ -8,7 +8,9 @@ export default function Login() {
   const [tiles, setTiles] = useState([]);
   const navigate = useNavigate();
 
-  // Generate number of tiles based on screen size
+  const API = import.meta.env.VITE_API_URL;
+
+  // Generate floating logo tiles
   useEffect(() => {
     const updateTiles = () => {
       const width = window.innerWidth;
@@ -16,7 +18,6 @@ export default function Login() {
       const cols = Math.ceil(width / 150);
       const rows = Math.ceil(height / 150);
       const total = cols * rows;
-      // Assign random initial positions and rotations
       const newTiles = Array.from({ length: total }).map(() => ({
         x: Math.random() * 100,
         y: Math.random() * 100,
@@ -32,7 +33,6 @@ export default function Login() {
     return () => window.removeEventListener("resize", updateTiles);
   }, []);
 
-  // Animate tiles
   useEffect(() => {
     const animate = () => {
       setTiles((prev) =>
@@ -48,31 +48,39 @@ export default function Login() {
     animate();
   }, []);
 
-  const API = import.meta.env.VITE_API_URL;
+  // Login handler
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    if (!email || !password) {
+      alert("Please enter both email and password.");
+      return;
+    }
+
     try {
+      console.log("Sending login request to:", `${API}/login`);
       const res = await fetch(`${API}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+
       const data = await res.json();
-      if (res.ok) {
+
+      if (res.ok && data.token) {
         localStorage.setItem("token", data.token);
         navigate("/dashboard");
       } else {
-        alert(data.message || "Login failed");
+        alert(data.message || "Invalid email or password.");
       }
     } catch (err) {
-      console.error(err);
-      alert("Error logging in.");
+      console.error("Login fetch error:", err);
+      alert("Unable to connect to server. Try again later.");
     }
   };
 
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-sky-950 text-white overflow-hidden">
-      
       {/* Floating Watermark Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         {tiles.map((tile, i) => (
@@ -82,7 +90,12 @@ export default function Login() {
             alt="Logo"
             className="opacity-10 absolute"
             style={{
-              width: window.innerWidth < 640 ? "80px" : window.innerWidth < 1024 ? "120px" : "150px",
+              width:
+                window.innerWidth < 640
+                  ? "80px"
+                  : window.innerWidth < 1024
+                  ? "120px"
+                  : "150px",
               height: "auto",
               top: `${tile.y}%`,
               left: `${tile.x}%`,
