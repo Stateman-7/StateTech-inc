@@ -30,8 +30,8 @@ app.use(cors({
 }));
 
 // Handle OPTIONS preflight for all routes
-app.options("*", cors({
-  origin: allowedOrigins,
+app.options("/*", cors({
+  origin: process.env.CORS_ORIGIN,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true
 }));
