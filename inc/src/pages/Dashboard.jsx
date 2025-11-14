@@ -5,6 +5,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
+  const API = import.meta.env.VITE_API_URL;
   const loadProfile = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -12,7 +13,7 @@ export default function Dashboard() {
       return;
     }
 
-    const res = await fetch("http://localhost:5000/profile", {
+    const res = await fetch(`${API}/profile`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
