@@ -29,9 +29,6 @@ app.use(cors({
   credentials: true,
 }));
 
-// handle preflight requests globally
-app.options("*", cors());
-
 // ----- Environment -----
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
