@@ -33,7 +33,7 @@ app.use(cors({
 }));
 
 // Preflight requests handling (OPTIONS)
-app.options("*", cors());
+app.options("/*", cors());
 
 // ----- Environment -----
 const PORT = process.env.PORT || 5000;
