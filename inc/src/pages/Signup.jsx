@@ -8,7 +8,6 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [tiles, setTiles] = useState([]);
   const navigate = useNavigate();
-
   const API = import.meta.env.VITE_API_URL; // Ensure this exists in .env
 
   // Generate number of tiles based on screen size with random positions and speeds
@@ -53,21 +52,28 @@ export default function Signup() {
   // Signup handler
   const handleSignup = async (e) => {
   e.preventDefault();
+
   try {
     const res = await fetch(`${API}/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password }),
     });
+
     const data = await res.json();
-    alert(data.message);
-    if (res.ok) navigate("/login");
+
+    if (res.ok) {
+      alert(data.message || "Signup successful!");
+      navigate("/login");
+    } else {
+      alert(data.message || "Signup failed.");
+    }
+
   } catch (err) {
     console.error(err);
     alert("Error signing up.");
   }
 };
-
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-sky-950 text-white overflow-hidden">
       {/* Floating Watermark Layer */}
@@ -147,4 +153,5 @@ export default function Signup() {
     </div>
   );
 }
+
 

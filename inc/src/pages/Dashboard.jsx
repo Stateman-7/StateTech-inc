@@ -1,37 +1,56 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Dashboard() {
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
 
+function Dashboard() {
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  // ----- Load Profile -----
   const loadProfile = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) return navigate("/login");
+    const token = localStorage.getItem("token");
 
-  const res = await fetch(`${API}/profile`, {
-    headers: { 
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
+    if (!token) {
+      navigate("/login");
+      return;
     }
-  });
 
-  const data = await res.json();
-  if (res.ok) {
-    setUser(data.user);
-  } else {
-    alert(data.message || "Session expired");
-    localStorage.removeItem("token");
-    navigate("/login");
-  }
-};
+    try {
+      const res = await fetch(`${API}/profile`, {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
 
+      const data = await res.json();
+
+      if (res.ok) {
+        setUser(data.user);
+      } else {
+        alert(data.message || "Session expired");
+        localStorage.removeItem("token");
+        navigate("/login");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error loading profile");
+      localStorage.removeItem("token");
+      navigate("/login");
+    }
+  };
+
+  // Load profile on mount
   useEffect(() => {
     loadProfile();
   }, []);
 
+  // ----- Logout -----
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
@@ -70,3 +89,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
+export default Dashboard;

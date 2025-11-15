@@ -15,19 +15,20 @@ app.use(express.json());
 // ----- CORS Setup -----
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",").map(o => o.trim())
-  : ["*"];
+  : [];
 
-// handle normal requests
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // allow non-browser requests
+    if (!origin) return callback(null, true); // allow non-browser clients
     if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    console.log("❌ CORS blocked:", origin);
     return callback(new Error("Not allowed by CORS"));
   },
-  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"],
-  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 }));
+
 
 // ----- Environment -----
 const PORT = process.env.PORT || 5000;
