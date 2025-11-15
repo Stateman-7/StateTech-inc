@@ -93,7 +93,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.post("/*login", async (req, res) => {
+app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ message: "Email and password required" });
@@ -112,7 +112,7 @@ app.post("/*login", async (req, res) => {
   }
 });
 
-app.get("/*profile", authenticateToken, async (req, res) => {
+app.get("/profile", authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
