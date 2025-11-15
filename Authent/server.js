@@ -10,30 +10,11 @@ import User from "./models/userModel.js";
 dotenv.config();
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
-// ----- CORS Setup -----
-const allowedOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(",").map(o => o.trim())
-  : ["http://localhost:5173"]; // fallback for local dev
 
-app.use(cors({
-  origin: function(origin, callback) {
-    // allow Postman, curl, or server-to-server requests
-    if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-
-    console.log("❌ CORS blocked:", origin);
-    return callback(new Error("Not allowed by CORS"));
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
-}));
-
-// Preflight requests handling (OPTIONS)
-app.options("*", cors());
 
 // ----- Environment -----
 const PORT = process.env.PORT || 5000;
