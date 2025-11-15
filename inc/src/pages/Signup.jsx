@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Logo from "/logo.png"; // replace with your logo path
+import { AuthAPI } from "../api"; // Use the reusable API helper
+import Logo from "/logo.png"; // Make sure it's in /public
 
 export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [tiles, setTiles] = useState([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const API = import.meta.env.VITE_API_URL; // Ensure this exists in .env
 
-  // Generate number of tiles based on screen size with random positions and speeds
+  // ----- Floating Tiles -----
   useEffect(() => {
     const updateTiles = () => {
       const width = window.innerWidth;
@@ -18,6 +19,7 @@ export default function Signup() {
       const cols = Math.ceil(width / 150);
       const rows = Math.ceil(height / 150);
       const total = cols * rows;
+
       const newTiles = Array.from({ length: total }).map(() => ({
         x: Math.random() * 100,
         y: Math.random() * 100,
@@ -26,14 +28,15 @@ export default function Signup() {
         speedY: (Math.random() - 0.5) * 0.05,
         speedRotate: (Math.random() - 0.5) * 0.05,
       }));
+
       setTiles(newTiles);
     };
+
     updateTiles();
     window.addEventListener("resize", updateTiles);
     return () => window.removeEventListener("resize", updateTiles);
   }, []);
 
-  // Animate tiles
   useEffect(() => {
     const animate = () => {
       setTiles((prev) =>
@@ -49,34 +52,25 @@ export default function Signup() {
     animate();
   }, []);
 
-  // Signup handler
+  // ----- Signup Handler -----
   const handleSignup = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    const res = await fetch(`${API}/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
+    try {
+      const data = await AuthAPI.signup(name, email, password);
       alert(data.message || "Signup successful!");
       navigate("/login");
-    } else {
-      alert(data.message || "Signup failed.");
+    } catch (err) {
+      alert(err.message || "Signup failed");
+    } finally {
+      setLoading(false);
     }
+  };
 
-  } catch (err) {
-    console.error(err);
-    alert("Error signing up.");
-  }
-};
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-sky-950 text-white overflow-hidden">
-      {/* Floating Watermark Layer */}
+      {/* Floating Tiles Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         {tiles.map((tile, i) => (
           <img
@@ -95,7 +89,8 @@ export default function Signup() {
               top: `${tile.y}%`,
               left: `${tile.x}%`,
               transform: `rotate(${tile.rotate}deg)`,
-              transition: "transform 0.1s linear, top 0.1s linear, left 0.1s linear",
+              transition:
+                "transform 0.1s linear, top 0.1s linear, left 0.1s linear",
             }}
           />
         ))}
@@ -134,9 +129,10 @@ export default function Signup() {
           />
           <button
             type="submit"
-            className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-xl transition duration-300"
+            disabled={loading}
+            className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-xl transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign Up
+            {loading ? "Signing up..." : "Sign Up"}
           </button>
         </form>
 

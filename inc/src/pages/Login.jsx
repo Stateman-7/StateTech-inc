@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Logo from "/logo.png"; // replace with your logo path
+import { AuthAPI } from "../api"; // Use your reusable API helper
+import Logo from "/logo.png"; // Make sure this is in /public folder
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [tiles, setTiles] = useState([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Generate number of tiles based on screen size
+  // ----- Floating Tiles -----
   useEffect(() => {
     const updateTiles = () => {
       const width = window.innerWidth;
@@ -16,7 +18,7 @@ export default function Login() {
       const cols = Math.ceil(width / 150);
       const rows = Math.ceil(height / 150);
       const total = cols * rows;
-      // Assign random initial positions and rotations
+
       const newTiles = Array.from({ length: total }).map(() => ({
         x: Math.random() * 100,
         y: Math.random() * 100,
@@ -25,14 +27,15 @@ export default function Login() {
         speedY: (Math.random() - 0.5) * 0.05,
         speedRotate: (Math.random() - 0.5) * 0.05,
       }));
+
       setTiles(newTiles);
     };
+
     updateTiles();
     window.addEventListener("resize", updateTiles);
     return () => window.removeEventListener("resize", updateTiles);
   }, []);
 
-  // Animate tiles
   useEffect(() => {
     const animate = () => {
       setTiles((prev) =>
@@ -48,34 +51,25 @@ export default function Login() {
     animate();
   }, []);
 
-const API = import.meta.env.VITE_API_URL;
-const handleLogin = async (e) => {
-  e.preventDefault();
+  // ----- Login Handler -----
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    const res = await fetch(`${API}/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
+    try {
+      const data = await AuthAPI.login(email, password);
       localStorage.setItem("token", data.token);
       navigate("/dashboard");
-    } else {
-      alert(data.message || "Login failed");
+    } catch (err) {
+      alert(err.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error(err);
-    alert("Error logging in.");
-  }
-};
+  };
+
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-sky-950 text-white overflow-hidden">
-      
-      {/* Floating Watermark Layer */}
+      {/* Floating Tiles Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         {tiles.map((tile, i) => (
           <img
@@ -84,12 +78,18 @@ const handleLogin = async (e) => {
             alt="Logo"
             className="opacity-10 absolute"
             style={{
-              width: window.innerWidth < 640 ? "80px" : window.innerWidth < 1024 ? "120px" : "150px",
+              width:
+                window.innerWidth < 640
+                  ? "80px"
+                  : window.innerWidth < 1024
+                  ? "120px"
+                  : "150px",
               height: "auto",
               top: `${tile.y}%`,
               left: `${tile.x}%`,
               transform: `rotate(${tile.rotate}deg)`,
-              transition: "transform 0.1s linear, top 0.1s linear, left 0.1s linear",
+              transition:
+                "transform 0.1s linear, top 0.1s linear, left 0.1s linear",
             }}
           />
         ))}
@@ -120,9 +120,10 @@ const handleLogin = async (e) => {
           />
           <button
             type="submit"
-            className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-xl transition duration-300"
+            disabled={loading}
+            className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-xl transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 

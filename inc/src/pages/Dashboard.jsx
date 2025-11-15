@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-  const API = import.meta.env.VITE_API_URL;
+const API = import.meta.env.VITE_API_URL;
 
 function Dashboard() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   // ----- Load Profile -----
@@ -42,6 +39,8 @@ function Dashboard() {
       alert("Error loading profile");
       localStorage.removeItem("token");
       navigate("/login");
+    } finally {
+      setLoading(false); // ✅ important!
     }
   };
 
@@ -68,14 +67,18 @@ function Dashboard() {
         </button>
       </nav>
 
-      <main className="flex-1 flex flex-col items-center justify-center text-center">
+      <main className="flex-1 flex flex-col items-center justify-center text-center p-4">
         {loading ? (
           <h2 className="text-4xl font-extrabold mb-6 text-white">
             Loading your profile...
           </h2>
+        ) : user ? (
+          <h2 className="text-4xl font-extrabold mb-6 text-white">
+            Welcome, {user.name || user.email}!
+          </h2>
         ) : (
           <h2 className="text-4xl font-extrabold mb-6 text-white">
-            {user ? `Welcome, ${user.email}` : "User not found"}
+            User not found
           </h2>
         )}
         <p className="text-gray-300 text-lg">
